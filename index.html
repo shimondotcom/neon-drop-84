@@ -100,6 +100,13 @@
   .touch button:active { background: var(--cyan); color: #000; }
   .touch button.red { border-color: var(--pink); color: var(--pink); box-shadow: 0 0 10px var(--pink); }
 
+  @media (max-height: 800px) {
+    .keys-panel { display: none; }
+    .side { gap: 8px; }
+    .panel { padding: 6px; }
+    .label { margin-bottom: 6px; }
+    .cabinet { padding: 10px 16px 14px; gap: 8px; }
+  }
   @media (pointer: coarse), (max-width: 600px) {
     .touch { display: flex; }
     .keys-panel { display: none; }
@@ -159,7 +166,7 @@
     const availW = window.innerWidth - (small ? 130 : 220);
     CELL = Math.max(14, Math.min(32, Math.floor(Math.min(availH / ROWS, availW / COLS))));
     board.width = COLS * CELL; board.height = ROWS * CELL;
-    const pw = small ? 64 : 100;
+    const pw = Math.round(Math.min(small ? 64 : 100, CELL * 3.6));
     for (const c of [nextCv, holdCv]) { c.width = pw; c.height = Math.round(pw * 0.6); }
     draw();
   }

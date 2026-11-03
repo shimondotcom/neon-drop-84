@@ -226,25 +226,25 @@
     if (collides(cur)) gameOver();
   }
 
-  function move(dx) { if (state === 'play' && !collides(cur, cur.m, dx, 0)) { cur.x += dx; sfx('move'); } }
+  function move(dx) { if (state === 'play' && cur && !collides(cur, cur.m, dx, 0)) { cur.x += dx; sfx('move'); } }
   function rotate(dir) {
-    if (state !== 'play' || cur.k === 'O') return;
+    if (state !== 'play' || !cur || cur.k === 'O') return;
     const m = dir > 0 ? rotateCW(cur.m) : rotateCCW(cur.m);
     for (const [kx, ky] of [[0,0],[-1,0],[1,0],[0,-1],[-2,0],[2,0]]) {
       if (!collides(cur, m, kx, ky)) { cur.m = m; cur.x += kx; cur.y += ky; sfx('rot'); return; }
     }
   }
   function softDrop() {
-    if (state !== 'play') return;
+    if (state !== 'play' || !cur) return;
     if (!collides(cur, cur.m, 0, 1)) { cur.y++; score += 1; acc = 0; updateHud(); } else lock();
   }
   function hardDrop() {
-    if (state !== 'play') return;
+    if (state !== 'play' || !cur) return;
     let d = 0; while (!collides(cur, cur.m, 0, 1)) { cur.y++; d++; }
     score += d * 2; shake = 6; sfx('slam'); lock();
   }
   function hold() {
-    if (state !== 'play' || !canHold) return;
+    if (state !== 'play' || !cur || !canHold) return;
     const k = cur.k;
     if (held) spawn(held); else spawn();
     held = k; canHold = false; sfx('rot'); drawSide();

@@ -33,4 +33,4 @@ Open `index.html` in a browser.
 
 ## Secret
 
-On the title or game-over screen, enter **↑ ↑ ↓ ↓ ← → ← → B A** to arm **3× points** for your next game. On a phone, swipe the eight arrows on the screen, then tap the left half (B) and the right half (A). Boosted scores are marked ×3 on the leaderboard.
+Enter **↑ ↑ ↓ ↓ ← → ← → B A** at any time for **3× points**, with a full-screen unlock to celebrate. Mid-game, the game freezes for the unlock and the rest of that game scores triple; on the title or game-over screen it arms your next game. On a phone, swipe the eight arrows (on the board mid-game, or on the title screen), then tap the left half (B) and the right half (A). Boosted scores are marked ×3 on the leaderboard.

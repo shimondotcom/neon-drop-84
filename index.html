@@ -3,102 +3,146 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<title>NEON DROP '84</title>
+<title>NEON DROP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #07000f;
-    --cab: #12002a;
-    --pink: #ff2bd6;
-    --cyan: #21f6ff;
-    --yellow: #ffe94a;
-    --text: #f4e9ff;
-    --dim: #8a6fb0;
+    --bg: #000206;
+    --cyan: #18e7ff;
+    --cyan-dim: rgba(24,231,255,.35);
+    --orange: #ff8a1f;
+    --white: #e9fdff;
+    --text: #bff6ff;
+    --dim: #4f8a96;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
   body {
-    background: radial-gradient(ellipse at center, #1d0040 0%, var(--bg) 70%);
+    background: radial-gradient(ellipse 80% 60% at 50% 40%, #021a24 0%, var(--bg) 70%);
     color: var(--text);
-    font-family: 'Press Start 2P', monospace;
+    font-family: 'Orbitron', 'Segoe UI', sans-serif; font-weight: 700;
     display: flex; align-items: center; justify-content: center;
     overflow: hidden; user-select: none; -webkit-user-select: none;
     touch-action: none;
   }
-  /* perspective grid floor */
+  /* glowing light-grid floor rushing toward the viewer */
   body::before {
-    content: ""; position: fixed; left: -50%; right: -50%; bottom: -10%; height: 55%;
+    content: ""; position: fixed; left: -60%; right: -60%; bottom: -12%; height: 58%;
     background:
-      repeating-linear-gradient(90deg, rgba(255,43,214,.35) 0 2px, transparent 2px 80px),
-      repeating-linear-gradient(0deg, rgba(255,43,214,.35) 0 2px, transparent 2px 60px);
-    transform: perspective(300px) rotateX(60deg);
-    transform-origin: bottom; animation: grid 2s linear infinite; z-index: -1;
-    mask-image: linear-gradient(to top, #000 30%, transparent);
-    -webkit-mask-image: linear-gradient(to top, #000 30%, transparent);
+      repeating-linear-gradient(90deg, rgba(24,231,255,.55) 0 1px, transparent 1px 70px),
+      repeating-linear-gradient(0deg, rgba(24,231,255,.55) 0 1px, transparent 1px 70px);
+    transform: perspective(260px) rotateX(64deg);
+    transform-origin: bottom; animation: grid 1.6s linear infinite; z-index: -1;
+    filter: drop-shadow(0 0 4px var(--cyan));
+    mask-image: linear-gradient(to top, #000 25%, transparent 90%);
+    -webkit-mask-image: linear-gradient(to top, #000 25%, transparent 90%);
   }
-  @keyframes grid { to { background-position: 0 60px, 0 60px; } }
+  /* horizon line */
+  body::after {
+    content: ""; position: fixed; left: 0; right: 0; top: 42%; height: 2px; z-index: -1;
+    background: linear-gradient(90deg, transparent, var(--cyan) 20%, var(--white) 50%, var(--cyan) 80%, transparent);
+    box-shadow: 0 0 18px 3px var(--cyan);
+    opacity: .5;
+  }
+  @keyframes grid { to { background-position: 0 70px, 0 70px; } }
 
   .cabinet {
     position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px;
-    padding: 18px 22px 22px; border-radius: 18px;
-    background: linear-gradient(180deg, #24005a, var(--cab));
-    box-shadow: 0 0 0 4px #3a0a7a, 0 0 40px rgba(255,43,214,.45), inset 0 0 30px rgba(0,0,0,.6);
+    padding: 18px 22px 22px;
+    background: rgba(0,6,12,.88);
+    border: 1px solid var(--cyan);
+    clip-path: polygon(18px 0, calc(100% - 18px) 0, 100% 18px, 100% calc(100% - 18px), calc(100% - 18px) 100%, 18px 100%, 0 calc(100% - 18px), 0 18px);
+    box-shadow: 0 0 30px rgba(24,231,255,.35), inset 0 0 24px rgba(24,231,255,.15);
     max-height: 100vh;
   }
-  .marquee {
-    font-size: clamp(18px, 4vw, 30px); letter-spacing: 3px; text-align: center;
-    color: var(--yellow);
-    text-shadow: 0 0 6px var(--yellow), 0 0 18px var(--pink), 3px 3px 0 var(--pink);
-    animation: flicker 4s infinite;
+  /* corner light accents */
+  .cabinet::before, .cabinet::after {
+    content: ""; position: absolute; width: 60px; height: 2px; background: var(--orange);
+    box-shadow: 0 0 10px var(--orange);
   }
-  .marquee small { display: block; font-size: 9px; color: var(--cyan); text-shadow: 0 0 8px var(--cyan); margin-top: 8px; letter-spacing: 4px; }
-  @keyframes flicker { 0%,92%,100% { opacity: 1 } 93% { opacity: .4 } 95% { opacity: 1 } 97% { opacity: .6 } }
+  .cabinet::before { top: 6px; left: 26px; }
+  .cabinet::after { bottom: 6px; right: 26px; }
+
+  .marquee {
+    font-size: clamp(20px, 4.4vw, 34px); font-weight: 900; letter-spacing: 6px; text-align: center;
+    color: var(--white);
+    text-shadow: 0 0 4px var(--white), 0 0 12px var(--cyan), 0 0 28px var(--cyan);
+    animation: hum 5s infinite;
+  }
+  .marquee small {
+    display: block; font-size: 9px; font-weight: 500; color: var(--orange); letter-spacing: 7px; margin-top: 8px;
+    text-shadow: 0 0 8px var(--orange);
+  }
+  @keyframes hum { 0%,94%,100% { opacity: 1 } 95% { opacity: .55 } 96% { opacity: 1 } 98% { opacity: .75 } }
 
   .screen {
     position: relative; display: flex; gap: 16px; padding: 16px;
-    background: #000; border-radius: 12px;
-    box-shadow: inset 0 0 40px rgba(33,246,255,.25), 0 0 0 3px #000, 0 0 0 6px #2b0a55;
+    background: #000;
+    box-shadow: inset 0 0 30px rgba(24,231,255,.18);
     overflow: hidden;
   }
-  /* CRT scanlines + vignette */
+  /* faint scan sweep */
   .screen::after {
     content: ""; position: absolute; inset: 0; pointer-events: none;
     background:
-      repeating-linear-gradient(0deg, rgba(0,0,0,.35) 0 1px, transparent 1px 3px),
-      radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,.55));
-    animation: roll 8s linear infinite;
+      linear-gradient(180deg, transparent 0 45%, rgba(24,231,255,.06) 50%, transparent 55% 100%),
+      repeating-linear-gradient(0deg, rgba(0,0,0,.25) 0 1px, transparent 1px 3px);
+    background-size: 100% 400%, 100% 100%;
+    animation: sweep 6s linear infinite;
   }
-  @keyframes roll { to { background-position: 0 300px, 0 0; } }
+  @keyframes sweep { from { background-position: 0 100%, 0 0; } to { background-position: 0 -300%, 0 0; } }
 
-  canvas { display: block; image-rendering: pixelated; }
-  #board { border: 2px solid var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+  canvas { display: block; }
+  #board { border: 1px solid var(--cyan); box-shadow: 0 0 14px var(--cyan), inset 0 0 10px var(--cyan); }
 
   .side { display: flex; flex-direction: column; gap: 14px; width: 120px; }
-  .panel { border: 2px solid var(--pink); box-shadow: 0 0 8px var(--pink); padding: 8px; }
-  .label { font-size: 8px; color: var(--pink); margin-bottom: 8px; text-shadow: 0 0 6px var(--pink); }
-  .value { font-size: 11px; color: var(--yellow); text-shadow: 0 0 6px var(--yellow); }
-  .keys { font-size: 7px; line-height: 1.9; color: var(--dim); }
-  .keys b { color: var(--cyan); font-weight: normal; }
+  .panel {
+    border: 1px solid var(--cyan-dim); border-left: 3px solid var(--cyan); padding: 8px;
+    background: linear-gradient(90deg, rgba(24,231,255,.08), transparent);
+  }
+  .label { font-size: 8px; font-weight: 500; letter-spacing: 3px; color: var(--cyan); margin-bottom: 8px; text-shadow: 0 0 6px var(--cyan); }
+  .value { font-size: 14px; font-weight: 900; color: var(--orange); text-shadow: 0 0 8px var(--orange); }
+  .keys { font-size: 8px; font-weight: 500; line-height: 2; color: var(--dim); letter-spacing: 1px; }
+  .keys b { color: var(--cyan); }
 
   .overlay {
     position: absolute; inset: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 18px; text-align: center; background: rgba(7,0,15,.82); z-index: 2;
+    gap: 18px; text-align: center; background: rgba(0,4,8,.85); z-index: 2;
   }
   .overlay.hidden { display: none; }
-  .overlay h2 { font-size: 18px; color: var(--pink); text-shadow: 0 0 10px var(--pink), 2px 2px 0 var(--cyan); line-height: 1.5; }
-  .overlay p { font-size: 9px; line-height: 2; color: var(--text); }
-  .blink { animation: blink 1s steps(2) infinite; color: var(--yellow) !important; }
-  @keyframes blink { 50% { opacity: 0; } }
+  .overlay h2 { font-size: 22px; font-weight: 900; letter-spacing: 5px; line-height: 1.4; color: var(--white); text-shadow: 0 0 10px var(--cyan), 0 0 24px var(--cyan); }
+  .overlay p { font-size: 10px; font-weight: 500; letter-spacing: 3px; line-height: 2; color: var(--text); }
+  .entry { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .entry.hidden, .scores.hidden { display: none; }
+  .entry label { font-size: 9px; font-weight: 500; letter-spacing: 3px; color: var(--cyan); text-shadow: 0 0 6px var(--cyan); }
+  .entry input {
+    width: 11ch; padding: 8px 6px; text-align: center; text-transform: uppercase;
+    font-family: inherit; font-size: 18px; font-weight: 900; letter-spacing: 4px;
+    color: var(--orange); background: rgba(255,138,31,.06); caret-color: var(--orange);
+    border: 1px solid var(--orange); outline: none; text-shadow: 0 0 8px var(--orange);
+    box-shadow: 0 0 12px rgba(255,138,31,.5), inset 0 0 8px rgba(255,138,31,.25);
+  }
+  .entry .hint { font-size: 7px; letter-spacing: 2px; color: var(--dim); }
+  .scores { border-collapse: collapse; font-size: 9px; letter-spacing: 2px; min-width: 190px; }
+  .scores caption { font-size: 9px; letter-spacing: 4px; color: var(--cyan); text-shadow: 0 0 6px var(--cyan); padding-bottom: 8px; }
+  .scores td { padding: 3px 6px; color: var(--text); }
+  .scores td:first-child { color: var(--dim); text-align: right; }
+  .scores td:last-child { text-align: right; color: var(--orange); }
+  .scores tr.me td { color: var(--white); text-shadow: 0 0 8px var(--cyan); }
+  .scores tr.me td:last-child { color: var(--orange); text-shadow: 0 0 8px var(--orange); }
+  .blink { animation: blink 1.2s ease-in-out infinite; color: var(--orange) !important; text-shadow: 0 0 8px var(--orange); }
+  @keyframes blink { 50% { opacity: .15; } }
 
   .touch { display: none; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 100vw; padding: 0 8px; }
   .touch button {
-    font-family: inherit; font-size: 12px; width: 48px; height: 48px; border-radius: 50%;
-    border: 3px solid var(--cyan); background: #1a0038; color: var(--cyan);
-    box-shadow: 0 0 10px var(--cyan); touch-action: manipulation;
+    font-family: inherit; font-size: 13px; width: 48px; height: 48px; border-radius: 50%;
+    border: 2px solid var(--cyan); background: rgba(24,231,255,.06); color: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan), inset 0 0 8px rgba(24,231,255,.4); touch-action: manipulation;
   }
   .touch button:active { background: var(--cyan); color: #000; }
-  .touch button.red { border-color: var(--pink); color: var(--pink); box-shadow: 0 0 10px var(--pink); }
+  .touch button.red { border-color: var(--orange); color: var(--orange); box-shadow: 0 0 10px var(--orange), inset 0 0 8px rgba(255,138,31,.4); }
+  .touch button.red:active { background: var(--orange); color: #000; }
 
   @media (max-height: 800px) {
     .keys-panel { display: none; }
@@ -114,12 +158,17 @@
     .screen { gap: 8px; padding: 8px; }
     .overlay { inset: 8px; }
     .side { width: 84px; gap: 8px; }
+    .value { font-size: 12px; }
+    .label { letter-spacing: 1px; }
+    .overlay { gap: 12px; }
+    .overlay h2 { font-size: 18px; }
+    .scores { font-size: 8px; letter-spacing: 1px; min-width: 0; }
   }
 </style>
 </head>
 <body>
 <div class="cabinet">
-  <div class="marquee">NEON DROP '84<small>INSERT COIN &bull; 1 PLAYER</small></div>
+  <div class="marquee">NEON DROP<small>ENTER THE GRID</small></div>
   <div class="screen">
     <canvas id="board"></canvas>
     <div class="side">
@@ -135,8 +184,14 @@
       </div></div>
     </div>
     <div class="overlay" id="overlay">
-      <h2 id="ovTitle">NEON<br>DROP '84</h2>
-      <p id="ovText">STACK THE BLOCKS.<br>CLEAR THE LINES.</p>
+      <h2 id="ovTitle">NEON<br>DROP</h2>
+      <p id="ovText">ROUTE THE LIGHT.<br>CLEAR THE GRID.</p>
+      <form class="entry hidden" id="entry" autocomplete="off">
+        <label for="nameIn">ENTER YOUR NAME</label>
+        <input id="nameIn" maxlength="8" spellcheck="false" autocapitalize="characters" enterkeyhint="done">
+        <span class="hint">UP TO 8 CHARACTERS &bull; ENTER TO SAVE</span>
+      </form>
+      <table class="scores" id="scores"><caption>TOP 10</caption><tbody id="scoreRows"></tbody></table>
       <p class="blink" id="ovPrompt">PRESS ENTER</p>
     </div>
   </div>
@@ -171,21 +226,52 @@
     draw();
   }
 
-  // Seven shapes, each with a neon color
+  // Seven shapes, each with its own light color
   const SHAPES = {
-    I: { c: '#21f6ff', m: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]] },
-    O: { c: '#ffe94a', m: [[1,1],[1,1]] },
-    T: { c: '#c04bff', m: [[0,1,0],[1,1,1],[0,0,0]] },
-    S: { c: '#39ff6a', m: [[0,1,1],[1,1,0],[0,0,0]] },
-    Z: { c: '#ff2b5e', m: [[1,1,0],[0,1,1],[0,0,0]] },
-    J: { c: '#3a6bff', m: [[1,0,0],[1,1,1],[0,0,0]] },
-    L: { c: '#ff9a1f', m: [[0,0,1],[1,1,1],[0,0,0]] },
+    I: { c: '#18e7ff', m: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]] },
+    O: { c: '#ffc21f', m: [[1,1],[1,1]] },
+    T: { c: '#b56bff', m: [[0,1,0],[1,1,1],[0,0,0]] },
+    S: { c: '#3dffb0', m: [[0,1,1],[1,1,0],[0,0,0]] },
+    Z: { c: '#ff4a2b', m: [[1,1,0],[0,1,1],[0,0,0]] },
+    J: { c: '#2f7bff', m: [[1,0,0],[1,1,1],[0,0,0]] },
+    L: { c: '#ff8a1f', m: [[0,0,1],[1,1,1],[0,0,0]] },
   };
   const KINDS = Object.keys(SHAPES);
 
   let grid, cur, nextQ, held, canHold, score, lines, level, dropMs, acc, last, state, hi, clearing;
-  try { hi = +localStorage.getItem('neondrop-hi') || 0; } catch { hi = 0; }
+
+  // Top-10 scoreboard, saved in this browser
+  const MAX_SCORES = 10, NAME_LEN = 8;
+  let scores = [];
+  try { scores = JSON.parse(localStorage.getItem('neondrop-scores')) || []; } catch { scores = []; }
+  if (!Array.isArray(scores)) scores = [];
+  scores = scores.filter(e => e && typeof e.name === 'string' && Number.isFinite(e.score)).slice(0, MAX_SCORES);
+  try { hi = Math.max(+localStorage.getItem('neondrop-hi') || 0, scores[0] ? scores[0].score : 0); } catch { hi = 0; }
   $('hi').textContent = hi;
+  const cleanName = s => s.toUpperCase().replace(/[^A-Z0-9 .\-_!]/g, '').slice(0, NAME_LEN).trim();
+  const qualifies = sc => sc > 0 && (scores.length < MAX_SCORES || sc > scores[scores.length - 1].score);
+  function addScore(name, sc) {
+    const entry = { name: name || 'PLAYER', score: sc };
+    scores.push(entry);
+    scores.sort((a, b) => b.score - a.score);
+    scores = scores.slice(0, MAX_SCORES);
+    try { localStorage.setItem('neondrop-scores', JSON.stringify(scores)); } catch {}
+    return entry;
+  }
+  function renderScores(mine) {
+    const body = $('scoreRows'); body.textContent = '';
+    if (!scores.length) {
+      const tr = body.insertRow(); const td = tr.insertCell(); td.colSpan = 3; td.textContent = 'NO SCORES YET'; td.style.textAlign = 'center';
+    }
+    scores.forEach((e, i) => {
+      const tr = body.insertRow();
+      if (e === mine) tr.className = 'me';
+      tr.insertCell().textContent = String(i + 1).padStart(2, '0');
+      tr.insertCell().textContent = e.name;
+      tr.insertCell().textContent = e.score;
+    });
+    $('scores').classList.remove('hidden');
+  }
 
   let bag = [];
   function fromBag() {
@@ -278,21 +364,46 @@
   }
 
   function gameOver() {
-    state = 'over'; cur = null; music.stop(); sfx('over');
-    if (score > hi) { hi = score; try { localStorage.setItem('neondrop-hi', hi); } catch {} }
+    cur = null; music.stop(); sfx('over');
+    const best = score > hi;
+    if (best) { hi = score; try { localStorage.setItem('neondrop-hi', hi); } catch {} }
     updateHud();
-    showOverlay('GAME OVER', `SCORE ${score}<br>${score >= hi && score > 0 ? 'NEW HI-SCORE!' : 'HI ' + hi}`, 'PRESS ENTER');
+    if (qualifies(score)) {
+      state = 'entry';
+      showOverlay('GAME OVER', `SCORE ${score}<br>${best ? 'NEW HI-SCORE!' : 'TOP 10!'}`, '');
+      $('scores').classList.add('hidden');
+      $('entry').classList.remove('hidden');
+      const inp = $('nameIn'); inp.value = '';
+      setTimeout(() => inp.focus(), 50);
+    } else {
+      state = 'over';
+      showOverlay('GAME OVER', `SCORE ${score}`, 'PRESS ENTER');
+      renderScores();
+    }
   }
+  $('nameIn').addEventListener('input', e => { const v = cleanName(e.target.value); if (v !== e.target.value.trim()) e.target.value = v; });
+  $('entry').addEventListener('submit', e => {
+    e.preventDefault();
+    if (state !== 'entry') return;
+    const mine = addScore(cleanName($('nameIn').value), score);
+    $('nameIn').blur();
+    $('entry').classList.add('hidden');
+    state = 'over';
+    sfx('level');
+    showOverlay('GAME OVER', `SCORE ${score}`, 'PRESS ENTER');
+    renderScores(mine);
+  });
   function showOverlay(t, txt, prompt) {
+    if (prompt === 'PRESS ENTER' && matchMedia('(pointer: coarse), (max-width: 600px)').matches) prompt = 'TAP TO PLAY';
     $('ovTitle').innerHTML = t; $('ovText').innerHTML = txt; $('ovPrompt').textContent = prompt;
     $('overlay').classList.remove('hidden');
   }
   function start() {
-    reset(); state = 'play'; $('overlay').classList.add('hidden');
+    reset(); state = 'play'; $('overlay').classList.add('hidden'); $('entry').classList.add('hidden');
     audioInit(); music.start(); last = performance.now();
   }
   function togglePause() {
-    if (state === 'play') { state = 'pause'; music.stop(); showOverlay('PAUSED', '', 'PRESS P'); }
+    if (state === 'play') { state = 'pause'; music.stop(); showOverlay('PAUSED', '', 'PRESS P'); $('scores').classList.add('hidden'); }
     else if (state === 'pause') { state = 'play'; music.start(); $('overlay').classList.add('hidden'); last = performance.now(); }
   }
 
@@ -304,30 +415,48 @@
 
   // ---------- Rendering ----------
   let shake = 0, flash = 0;
+  const CLEAR_MS = 320;
+  // Dark glass cell edged with glowing light
   function cell(c, x, y, color, size, alpha = 1) {
+    const lw = Math.max(1.5, size * 0.08), inset = Math.max(3, size * 0.22);
     c.globalAlpha = alpha;
-    c.fillStyle = color; c.shadowColor = color; c.shadowBlur = size * 0.5;
+    c.fillStyle = color; c.globalAlpha = alpha * 0.16;
     c.fillRect(x + 1, y + 1, size - 2, size - 2);
+    c.globalAlpha = alpha;
+    c.strokeStyle = color; c.lineWidth = lw; c.shadowColor = color; c.shadowBlur = size * 0.45;
+    c.strokeRect(x + 1 + lw / 2, y + 1 + lw / 2, size - 2 - lw, size - 2 - lw);
     c.shadowBlur = 0;
-    c.fillStyle = 'rgba(255,255,255,.45)'; c.fillRect(x + 2, y + 2, size - 4, Math.max(2, size * 0.14));
-    c.fillStyle = 'rgba(0,0,0,.35)'; c.fillRect(x + 2, y + size - 2 - Math.max(2, size * 0.14), size - 4, Math.max(2, size * 0.14));
+    c.globalAlpha = alpha * 0.55; c.lineWidth = 1;
+    c.strokeRect(x + inset + .5, y + inset + .5, size - inset * 2 - 1, size - inset * 2 - 1);
+    c.globalAlpha = alpha; c.fillStyle = '#ffffff';
+    const d = Math.max(1.5, size * 0.07);
+    c.fillRect(x + 2, y + 2, d, d);
     c.globalAlpha = 1;
   }
   function draw() {
     if (!grid) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, board.width, board.height); return; }
     ctx.save();
     if (shake > 0) { ctx.translate((Math.random() - .5) * shake, (Math.random() - .5) * shake); shake *= 0.8; if (shake < .5) shake = 0; }
-    ctx.fillStyle = '#04000a'; ctx.fillRect(-10, -10, board.width + 20, board.height + 20);
-    ctx.strokeStyle = 'rgba(192,75,255,.12)'; ctx.lineWidth = 1;
+    ctx.fillStyle = '#000306'; ctx.fillRect(-10, -10, board.width + 20, board.height + 20);
+    ctx.strokeStyle = 'rgba(24,231,255,.1)'; ctx.lineWidth = 1;
     for (let x = 1; x < COLS; x++) { ctx.beginPath(); ctx.moveTo(x * CELL + .5, 0); ctx.lineTo(x * CELL + .5, board.height); ctx.stroke(); }
     for (let y = 1; y < ROWS; y++) { ctx.beginPath(); ctx.moveTo(0, y * CELL + .5); ctx.lineTo(board.width, y * CELL + .5); ctx.stroke(); }
 
+    // during a clear, a white light streak sweeps each full row and wipes it
+    const sweepX = clearing ? Math.min(1, clearing.t / CLEAR_MS) * board.width : 0;
     for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
       if (!grid[y][x]) continue;
       if (clearing && clearing.rows.includes(y)) {
-        const on = Math.floor(clearing.t / 60) % 2 === 0;
-        cell(ctx, x * CELL, y * CELL, on ? '#ffffff' : grid[y][x], CELL);
+        if ((x + 1) * CELL > sweepX) cell(ctx, x * CELL, y * CELL, '#e9fdff', CELL);
       } else cell(ctx, x * CELL, y * CELL, grid[y][x], CELL);
+    }
+    if (clearing) for (const y of clearing.rows) {
+      const g = ctx.createLinearGradient(sweepX - CELL * 4, 0, sweepX, 0);
+      g.addColorStop(0, 'rgba(24,231,255,0)'); g.addColorStop(1, 'rgba(233,253,255,.9)');
+      ctx.fillStyle = g; ctx.shadowColor = '#18e7ff'; ctx.shadowBlur = CELL;
+      ctx.fillRect(Math.max(0, sweepX - CELL * 4), y * CELL + CELL * .3, Math.min(sweepX, CELL * 4), CELL * .4);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(sweepX - 3, y * CELL + 2, 3, CELL - 4);
+      ctx.shadowBlur = 0;
     }
     if (cur) {
       let gy = 0; while (!collides(cur, cur.m, 0, gy + 1)) gy++;
@@ -340,7 +469,7 @@
       for (let y = 0; y < cur.m.length; y++) for (let x = 0; x < cur.m[y].length; x++)
         if (cur.m[y][x] && cur.y + y >= 0) cell(ctx, (cur.x + x) * CELL, (cur.y + y) * CELL, col, CELL);
     }
-    if (flash > 0) { ctx.fillStyle = `rgba(255,43,214,${flash * .35})`; ctx.fillRect(0, 0, board.width, board.height); flash -= .04; }
+    if (flash > 0) { ctx.fillStyle = `rgba(24,231,255,${flash * .3})`; ctx.fillRect(0, 0, board.width, board.height); flash -= .04; }
     ctx.restore();
   }
   function drawMini(c, cv, k) {
@@ -359,7 +488,7 @@
   function loop(now) {
     const dt = now - (last || now); last = now;
     if (state === 'play') {
-      if (clearing) { clearing.t += dt; if (clearing.t > 360) finishClear(); }
+      if (clearing) { clearing.t += dt; if (clearing.t > CLEAR_MS + 60) finishClear(); }
       else if (cur) {
         acc += dt;
         if (acc >= dropMs) { acc = 0; if (!collides(cur, cur.m, 0, 1)) cur.y++; else lock(); }
@@ -389,6 +518,7 @@
   }
   const MAP = { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'down', ArrowUp: 'rot', KeyX: 'rot', KeyZ: 'rotl', Space: 'drop', KeyC: 'hold', ShiftLeft: 'hold' };
   document.addEventListener('keydown', e => {
+    if (state === 'entry') return;
     if (e.code === 'Enter' && state !== 'play' && state !== 'pause') { start(); return; }
     if (e.code === 'KeyP' || e.code === 'Escape') { togglePause(); return; }
     if (e.code === 'KeyM') { muted = !muted; if (muted) music.stop(); else if (state === 'play') music.start(); return; }
@@ -404,6 +534,7 @@
     const a = b.dataset.k;
     b.addEventListener('pointerdown', e => {
       e.preventDefault();
+      if (state === 'entry') return;
       if (state !== 'play' && state !== 'pause') { start(); return; }
       if (a in rep) { keysDown[a] = true; rep[a] = 0; }
       act(a);
@@ -411,7 +542,7 @@
     const up = () => { if (a in rep) keysDown[a] = false; };
     b.addEventListener('pointerup', up); b.addEventListener('pointerleave', up); b.addEventListener('pointercancel', up);
   });
-  $('overlay').addEventListener('pointerdown', () => { if (state === 'pause') togglePause(); else if (state !== 'play') start(); });
+  $('overlay').addEventListener('pointerdown', () => { if (state === 'pause') togglePause(); else if (state === 'title' || state === 'over') start(); });
 
   // ---------- Sound: square-wave bleeps + original arpeggio loop ----------
   let actx, master, muted = false;
@@ -467,6 +598,8 @@
 
   window.addEventListener('resize', resize);
   state = 'title';
+  if (matchMedia('(pointer: coarse), (max-width: 600px)').matches) $('ovPrompt').textContent = 'TAP TO PLAY';
+  renderScores();
   resize();
   requestAnimationFrame(loop);
 })();

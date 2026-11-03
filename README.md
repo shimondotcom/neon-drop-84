@@ -4,6 +4,10 @@ A retro 80s arcade falling-block puzzle game set in a glowing light-grid world: 
 
 A live leaderboard is always on screen (a side panel on big screens, a scrolling ticker on phones), with a "YOU" row that climbs as you score. After a game, a top-10 score asks for your name (up to 8 characters). Scores are saved in your browser.
 
+## The programs
+
+Every block is one of seven grid programs, each with its own color and circuit pattern: **BEAM**, **CORE**, **HUB**, **ZIP**, **ZAG**, **HOOK** and **KICK**. Each piece carries a pilot, a small visor-helmet character that looks where you move it, blinks, squints when you slam it, and goes to sleep once it lands. The NEXT panel names the incoming program.
+
 ## Controls
 
 | Key | Action |

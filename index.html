@@ -194,6 +194,17 @@
   body.boosted .cabinet { border-color: var(--orange); box-shadow: 0 0 34px rgba(255,138,31,.55), inset 0 0 24px rgba(255,138,31,.18); }
   body.boosted .marquee { text-shadow: 0 0 4px #fff, 0 0 12px var(--orange), 0 0 28px var(--orange); }
   body.boosted #board { border-color: var(--orange); box-shadow: 0 0 16px var(--orange), inset 0 0 10px rgba(255,138,31,.6); }
+  /* code tracker: lights up as the secret code is entered */
+  .code-hud {
+    position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+    z-index: 40; display: flex; gap: 6px; padding: 8px 12px; pointer-events: none;
+    background: rgba(0,4,8,.85); border: 1px solid var(--cyan-dim);
+    font-size: 13px; font-weight: 900; transition: opacity .3s;
+  }
+  .code-hud.hidden { opacity: 0; }
+  .code-hud span { color: var(--dim); opacity: .5; }
+  .code-hud span.lit { color: var(--orange); opacity: 1; text-shadow: 0 0 8px var(--orange); }
+  .build { position: absolute; left: 12px; bottom: 6px; font-size: 7px; letter-spacing: 2px; color: var(--dim); opacity: .6; pointer-events: none; }
   .boost-tag { font-size: 10px; letter-spacing: 3px; color: var(--orange); text-shadow: 0 0 8px var(--orange), 0 0 18px var(--orange); animation: blink .8s ease-in-out infinite; }
   .boost-tag.hidden { display: none; }
   .x3 { color: var(--orange); font-size: .8em; margin-left: 4px; text-shadow: 0 0 6px var(--orange); }
@@ -298,6 +309,7 @@
 </head>
 <body>
 <canvas id="bgRacers" aria-hidden="true"></canvas>
+<div class="code-hud hidden" id="codeHud" aria-hidden="true"></div>
 <div class="unlock hidden" id="unlock" role="alert">
   <canvas id="fx"></canvas>
   <div class="u-top">SECRET UNLOCKED</div>
@@ -310,6 +322,7 @@
   <button class="mini-btn" id="soundBtn" data-k="sound" aria-label="Toggle sound">&#9834;</button>
   <button class="mini-btn" id="pauseBtn" data-k="pause" aria-label="Pause">II</button>
   <div class="marquee">NEON DROP<small>ENTER THE GRID</small></div>
+  <div class="build">BUILD 2026.11.03-10</div>
   <div class="ticker" aria-label="Leaderboard"><div class="ticker-track" id="ticker"></div></div>
   <div class="screen">
     <div class="leader panel"><div class="label">LEADERBOARD</div><table><tbody id="leaderRows"></tbody></table></div>
@@ -955,12 +968,26 @@
     return 0;
   }
   const inGame = () => state === 'play' || state === 'pause';
+  const CODE_GLYPHS = ['\u25B2', '\u25B2', '\u25BC', '\u25BC', '\u25C0', '\u25B6', '\u25C0', '\u25B6', 'B', 'A'];
+  let hudT = 0;
+  // shows how much of the code has been entered; mid-game only once it's clearly on purpose
+  function showCodeHud(p) {
+    const hud = $('codeHud');
+    if (!hud.firstChild) for (const g of CODE_GLYPHS) { const sp = document.createElement('span'); sp.textContent = g; hud.append(sp); }
+    [...hud.children].forEach((sp, i) => sp.classList.toggle('lit', i < p));
+    clearTimeout(hudT);
+    if (p >= (inGame() ? 3 : 2)) {
+      hud.classList.remove('hidden');
+      hudT = setTimeout(() => hud.classList.add('hidden'), p === CODE.length ? 600 : 1800);
+    } else hud.classList.add('hidden');
+  }
   function codeInput(t) {
     if (boostArmed || (inGame() && mult === 3)) return;   // already boosted
     codeBuf = codeBuf.concat(t).slice(-CODE.length);
     const p = codeProgress();
+    showCodeHud(p);
     if (p === CODE.length) { armBoost(); codeBuf = []; }
-    // rising blips as the code builds; mid-game only once it's clearly on purpose
+    // rising blips as the code builds
     else if (p >= (inGame() ? 3 : 1)) { audioInit(); tone(330 * Math.pow(2, p / 12 * 2), .06, 'square', .35); }
   }
   function armBoost() {
@@ -1055,8 +1082,9 @@
       if (e.code === 'Enter' || e.code === 'Escape' || e.code === 'Space') { e.preventDefault(); closeUnlock(); }
       return;
     }
-    if (CODE_KEYS[e.code] && !e.repeat) {
-      codeInput(CODE_KEYS[e.code]);
+    const codeTok = CODE_KEYS[e.code] || { b: 'B', a: 'A' }[(e.key || '').toLowerCase()];
+    if (codeTok && !e.repeat) {
+      codeInput(codeTok);
       if (unlockShowing()) { e.preventDefault(); return; }   // the code just completed: don't also move the piece
       if (e.code.startsWith('Arrow') && state !== 'play') e.preventDefault();
     }

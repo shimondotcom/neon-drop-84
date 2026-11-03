@@ -140,6 +140,10 @@
   .scores td:last-child { text-align: right; color: var(--orange); }
   .scores tr.me td { color: var(--white); text-shadow: 0 0 8px var(--cyan); }
   .scores tr.me td:last-child { color: var(--orange); text-shadow: 0 0 8px var(--orange); }
+  .boost-tag { font-size: 10px; letter-spacing: 3px; color: var(--orange); text-shadow: 0 0 8px var(--orange), 0 0 18px var(--orange); animation: blink .8s ease-in-out infinite; }
+  .boost-tag.hidden { display: none; }
+  .x3 { color: var(--orange); font-size: .8em; margin-left: 4px; text-shadow: 0 0 6px var(--orange); }
+  .label.boosted { color: var(--orange); text-shadow: 0 0 8px var(--orange); }
   .blink { animation: blink 1.2s ease-in-out infinite; color: var(--orange) !important; text-shadow: 0 0 8px var(--orange); }
   @keyframes blink { 50% { opacity: .15; } }
 
@@ -251,7 +255,7 @@
     <canvas id="board"></canvas>
     <div class="side">
       <div class="panel"><div class="label">HI-SCORE</div><div class="value" id="hi">0</div></div>
-      <div class="panel"><div class="label">SCORE</div><div class="value" id="score">0</div></div>
+      <div class="panel"><div class="label" id="scoreLabel">SCORE</div><div class="value" id="score">0</div></div>
       <div class="panel"><div class="label">LEVEL</div><div class="value" id="level">1</div></div>
       <div class="panel"><div class="label">LINES</div><div class="value" id="lines">0</div></div>
       <div class="panel"><div class="label">NEXT</div><canvas id="next"></canvas></div>
@@ -270,6 +274,7 @@
         <span class="hint">UP TO 8 CHARACTERS &bull; ENTER TO SAVE</span>
       </form>
       <table class="scores" id="scores"><caption>TOP 10</caption><tbody id="scoreRows"></tbody></table>
+      <p class="boost-tag hidden" id="boostTag">&#9733; 3X POINTS ARMED &#9733;</p>
       <p class="blink" id="ovPrompt">PRESS ENTER</p>
     </div>
   </div>
@@ -356,25 +361,30 @@
   let scores = [];
   try { scores = JSON.parse(localStorage.getItem('neondrop-scores')) || []; } catch { scores = []; }
   if (!Array.isArray(scores)) scores = [];
-  scores = scores.filter(e => e && typeof e.name === 'string' && Number.isFinite(e.score)).slice(0, MAX_SCORES);
+  scores = scores.filter(e => e && typeof e.name === 'string' && Number.isFinite(e.score)).slice(0, MAX_SCORES)
+    .map(e => ({ name: e.name, score: e.score, x3: e.x3 === true }));
   try { hi = Math.max(+localStorage.getItem('neondrop-hi') || 0, scores[0] ? scores[0].score : 0); } catch { hi = 0; }
   $('hi').textContent = hi;
   const cleanName = s => s.toUpperCase().replace(/[^A-Z0-9 .\-_!]/g, '').slice(0, NAME_LEN).trim();
   const qualifies = sc => sc > 0 && (scores.length < MAX_SCORES || sc > scores[scores.length - 1].score);
-  function addScore(name, sc) {
-    const entry = { name: name || 'PLAYER', score: sc };
+  function addScore(name, sc, x3) {
+    const entry = { name: name || 'PLAYER', score: sc, x3 };
     scores.push(entry);
     scores.sort((a, b) => b.score - a.score);
     scores = scores.slice(0, MAX_SCORES);
     try { localStorage.setItem('neondrop-scores', JSON.stringify(scores)); } catch {}
     return entry;
   }
+  function nameCell(td, r) {
+    td.textContent = r.name;
+    if (r.x3) { const x = document.createElement('span'); x.className = 'x3'; x.textContent = '\u00D73'; td.append(x); }
+  }
   // Live leaderboard: saved scores plus a "YOU" row that climbs as the current game scores
   let leaderKey = '';
   function renderLeader() {
     const live = state === 'play' || state === 'pause' || state === 'entry';
-    const rows = scores.map(e => ({ name: e.name, score: e.score }));
-    if (live) rows.push({ name: 'YOU', score, you: true });
+    const rows = scores.map(e => ({ name: e.name, score: e.score, x3: e.x3 }));
+    if (live) rows.push({ name: 'YOU', score, you: true, x3: mult === 3 });
     rows.sort((a, b) => b.score - a.score || (a.you ? 1 : b.you ? -1 : 0));
     const key = JSON.stringify(rows);
     if (key === leaderKey) return;
@@ -390,7 +400,7 @@
       if (!r) { tr.className = 'gap'; const td = tr.insertCell(); td.colSpan = 3; td.textContent = '\u22EE'; return; }
       if (r.you) tr.className = 'you';
       tr.insertCell().textContent = String(rows.indexOf(r) + 1).padStart(2, '0');
-      tr.insertCell().textContent = r.name;
+      nameCell(tr.insertCell(), r);
       tr.insertCell().textContent = r.score;
     });
 
@@ -402,6 +412,7 @@
       if (r.you) sp.className = 'you';
       if (r.score !== '') { const b = document.createElement('b'); b.textContent = '#' + (rows.indexOf(r) + 1); sp.append(b); }
       sp.append(r.name);
+      if (r.x3) { const x = document.createElement('span'); x.className = 'x3'; x.textContent = '\u00D73'; sp.append(x); }
       if (r.score !== '') { const i = document.createElement('i'); i.textContent = r.score; sp.append(i); }
       t.append(sp);
     }
@@ -416,7 +427,7 @@
       const tr = body.insertRow();
       if (e === mine) tr.className = 'me';
       tr.insertCell().textContent = String(i + 1).padStart(2, '0');
-      tr.insertCell().textContent = e.name;
+      nameCell(tr.insertCell(), e);
       tr.insertCell().textContent = e.score;
     });
     $('scores').classList.remove('hidden');
@@ -472,12 +483,12 @@
   }
   function softDrop() {
     if (state !== 'play' || !cur) return;
-    if (!collides(cur, cur.m, 0, 1)) { cur.y++; score += 1; acc = 0; updateHud(); } else lock();
+    if (!collides(cur, cur.m, 0, 1)) { cur.y++; score += 1 * mult; acc = 0; updateHud(); } else lock();
   }
   function hardDrop() {
     if (state !== 'play' || !cur) return;
     let d = 0; while (!collides(cur, cur.m, 0, 1)) { cur.y++; d++; }
-    score += d * 2; shake = 6; sfx('slam'); lock();
+    score += d * 2 * mult; shake = 6; sfx('slam'); lock();
   }
   function hold() {
     if (state !== 'play' || !cur || !canHold) return;
@@ -506,7 +517,7 @@
     const n = clearing.rows.length;
     for (const y of clearing.rows) { grid.splice(y, 1); grid.unshift(Array(COLS).fill(null)); }
     clearing = null; gridDirty = true;
-    score += [0, 100, 300, 500, 800][n] * level;
+    score += [0, 100, 300, 500, 800][n] * level * mult;
     lines += n;
     const nl = Math.floor(lines / 10) + 1;
     if (nl > level) { level = nl; setSpeed(); sfx('level'); flash = 1; }
@@ -536,7 +547,7 @@
   $('entry').addEventListener('submit', e => {
     e.preventDefault();
     if (state !== 'entry') return;
-    const mine = addScore(cleanName($('nameIn').value), score);
+    const mine = addScore(cleanName($('nameIn').value), score, mult === 3);
     $('nameIn').blur();
     $('entry').classList.add('hidden');
     state = 'over';
@@ -551,6 +562,10 @@
     $('overlay').classList.remove('hidden');
   }
   function start() {
+    mult = boostArmed ? 3 : 1; boostArmed = false;
+    $('boostTag').classList.add('hidden');
+    $('scoreLabel').textContent = mult === 3 ? 'SCORE \u00D73' : 'SCORE';
+    $('scoreLabel').classList.toggle('boosted', mult === 3);
     reset(); state = 'play'; $('overlay').classList.add('hidden'); $('entry').classList.add('hidden');
     renderLeader();
     audioInit(); music.start(); last = performance.now();
@@ -788,9 +803,38 @@
     if (muted) music.stop(); else if (state === 'play') music.start();
     $('soundBtn').classList.toggle('off', muted);
   }
+  // Secret code on the title / game-over screen: up up down down left right left right B A.
+  // Arms 3x points for the next game. On phones: swipe the arrows, then tap left half (B), right half (A).
+  const CODE = ['U', 'U', 'D', 'D', 'L', 'R', 'L', 'R', 'B', 'A'];
+  const CODE_KEYS = { ArrowUp: 'U', ArrowDown: 'D', ArrowLeft: 'L', ArrowRight: 'R', KeyB: 'B', KeyA: 'A' };
+  let mult = 1, boostArmed = false, codeBuf = [];
+  // how far into the code the most recent inputs are
+  function codeProgress() {
+    for (let n = Math.min(codeBuf.length, CODE.length); n > 0; n--)
+      if (codeBuf.slice(-n).every((t, i) => t === CODE[i])) return n;
+    return 0;
+  }
+  function codeInput(t) {
+    if (boostArmed) return;
+    codeBuf = codeBuf.concat(t).slice(-CODE.length);
+    const p = codeProgress();
+    if (p === CODE.length) { armBoost(); codeBuf = []; }
+    else if (p > 0) { audioInit(); tone(330 * Math.pow(2, p / 12 * 2), .06, 'square', .35); }
+  }
+  function armBoost() {
+    boostArmed = true;
+    audioInit(); sfx('level'); sfx('race');
+    if (grid) flash = 1;
+    buzz([40, 30, 40, 30, 80]);
+    $('boostTag').classList.remove('hidden');
+  }
   const MAP = { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'down', ArrowUp: 'rot', KeyX: 'rot', KeyZ: 'rotl', Space: 'drop', KeyC: 'hold', ShiftLeft: 'hold' };
   document.addEventListener('keydown', e => {
     if (state === 'entry') return;
+    if ((state === 'title' || state === 'over') && CODE_KEYS[e.code] && !e.repeat) {
+      codeInput(CODE_KEYS[e.code]);
+      if (e.code.startsWith('Arrow')) e.preventDefault();
+    }
     if (e.code === 'Enter' && state !== 'play' && state !== 'pause') { start(); return; }
     if (e.code === 'KeyP' || e.code === 'Escape') { togglePause(); return; }
     if (e.code === 'KeyM') { toggleSound(); return; }
@@ -860,7 +904,25 @@
   const buzz = ms => { try { if (isTouch() && navigator.vibrate) navigator.vibrate(ms); } catch {} };
   // pause when the player switches apps or locks the phone
   document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play') togglePause(); });
-  $('overlay').addEventListener('pointerdown', () => { audioInit(); if (state === 'pause') togglePause(); else if (state === 'title' || state === 'over') start(); });
+  let ov = null;
+  $('overlay').addEventListener('pointerdown', e => {
+    audioInit();
+    if (state === 'pause') { togglePause(); return; }
+    if (state === 'title' || state === 'over') ov = { x: e.clientX, y: e.clientY };
+  });
+  $('overlay').addEventListener('pointerup', e => {
+    if (!ov || (state !== 'title' && state !== 'over')) { ov = null; return; }
+    const dx = e.clientX - ov.x, dy = e.clientY - ov.y; ov = null;
+    if (Math.hypot(dx, dy) > 30) { codeInput(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'R' : 'L') : (dy > 0 ? 'D' : 'U')); return; }
+    const p = codeProgress();
+    if (!boostArmed && (p === 8 || p === 9)) {          // arrows done: left half = B, right half = A
+      const r = $('overlay').getBoundingClientRect();
+      codeInput(e.clientX - r.left < r.width / 2 ? 'B' : 'A');
+      return;
+    }
+    start();
+  });
+  $('overlay').addEventListener('pointercancel', () => { ov = null; });
   // iOS only lets audio start inside a touchend/click, so resume there too
   for (const ev of ['touchend', 'click']) document.addEventListener(ev, () => { if (actx && actx.state === 'suspended') actx.resume(); }, { passive: true });
 

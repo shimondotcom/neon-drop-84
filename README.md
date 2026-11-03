@@ -30,3 +30,7 @@ A live leaderboard is always on screen (a side panel on big screens, a scrolling
 ## Run locally
 
 Open `index.html` in a browser.
+
+## Secret
+
+On the title or game-over screen, enter **↑ ↑ ↓ ↓ ← → ← → B A** to arm **3× points** for your next game. On a phone, swipe the eight arrows on the screen, then tap the left half (B) and the right half (A). Boosted scores are marked ×3 on the leaderboard.

@@ -47,6 +47,7 @@
   }
   @keyframes grid { to { background-position: 0 70px, 0 70px; } }
 
+  #bgRacers { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
   .cabinet {
     position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px;
     padding: 18px 22px 22px;
@@ -167,6 +168,7 @@
 </style>
 </head>
 <body>
+<canvas id="bgRacers" aria-hidden="true"></canvas>
 <div class="cabinet">
   <div class="marquee">NEON DROP<small>ENTER THE GRID</small></div>
   <div class="screen">
@@ -348,7 +350,7 @@
     canHold = true;
     if (full.length) {
       clearing = { rows: full, t: 0 }; cur = null;
-      sfx(full.length === 4 ? 'quad' : 'clear');
+      sfx(full.length === 4 ? 'quad' : 'clear'); sfx('race');
     } else { sfx('lock'); spawn(); }
     updateHud();
   }
@@ -415,7 +417,74 @@
 
   // ---------- Rendering ----------
   let shake = 0, flash = 0;
-  const CLEAR_MS = 320;
+  const CLEAR_MS = 560;
+  const RACER_COLORS = ['#18e7ff', '#ff8a1f'];
+
+  // Original light-racer: a low wedge car with a canopy, a light stripe and glowing disc wheels.
+  // Drawn facing right with its nose at (0, 0); dir = -1 mirrors it to face left.
+  function drawRacer(c, nx, cy, L, H, dir, col) {
+    c.save();
+    c.translate(nx, cy); c.scale(dir, 1);
+    const wheelY = H * 0.28, wr = H * 0.24;
+    c.lineJoin = 'round';
+    // body
+    c.beginPath();
+    c.moveTo(0, H * 0.12);
+    c.lineTo(-L * 0.12, -H * 0.06);
+    c.lineTo(-L * 0.42, -H * 0.3);
+    c.lineTo(-L * 0.78, -H * 0.32);
+    c.lineTo(-L * 0.96, -H * 0.5);
+    c.lineTo(-L, -H * 0.5);
+    c.lineTo(-L, H * 0.3);
+    c.lineTo(-L * 0.04, H * 0.3);
+    c.closePath();
+    c.fillStyle = '#02080c'; c.fill();
+    c.strokeStyle = col; c.lineWidth = Math.max(1.5, H * 0.09);
+    c.shadowColor = col; c.shadowBlur = H * 0.8;
+    c.stroke();
+    // canopy
+    c.beginPath();
+    c.moveTo(-L * 0.3, -H * 0.2);
+    c.lineTo(-L * 0.46, -H * 0.46);
+    c.lineTo(-L * 0.66, -H * 0.46);
+    c.lineTo(-L * 0.7, -H * 0.3);
+    c.closePath();
+    c.fillStyle = 'rgba(233,253,255,.18)'; c.fill();
+    c.strokeStyle = '#e9fdff'; c.lineWidth = Math.max(1, H * 0.05); c.stroke();
+    // side light stripe
+    c.beginPath(); c.moveTo(-L * 0.08, H * 0.1); c.lineTo(-L * 0.94, H * 0.06);
+    c.strokeStyle = '#ffffff'; c.lineWidth = Math.max(1, H * 0.06); c.stroke();
+    // disc wheels
+    for (const wx of [-L * 0.22, -L * 0.8]) {
+      c.beginPath(); c.arc(wx, wheelY, wr, 0, Math.PI * 2);
+      c.fillStyle = '#000'; c.fill();
+      c.strokeStyle = col; c.lineWidth = Math.max(1.5, H * 0.08); c.stroke();
+      c.beginPath(); c.arc(wx, wheelY, wr * 0.35, 0, Math.PI * 2);
+      c.fillStyle = '#e9fdff'; c.fill();
+    }
+    c.restore();
+  }
+  // Light trail streaming behind a racer, fading out toward its tail end
+  function drawTrail(c, fromX, toX, y, h, col, alpha = 1) {
+    if (Math.abs(toX - fromX) < 1) return;
+    const g = c.createLinearGradient(fromX, 0, toX, 0);
+    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, col);
+    c.save();
+    c.globalAlpha = alpha;
+    c.fillStyle = g; c.shadowColor = col; c.shadowBlur = h * 3;
+    c.fillRect(Math.min(fromX, toX), y - h / 2, Math.abs(toX - fromX), h);
+    c.shadowBlur = 0; c.fillStyle = 'rgba(255,255,255,.85)';
+    c.fillRect(Math.min(fromX, toX), y - h / 6, Math.abs(toX - fromX), h / 3);
+    c.restore();
+  }
+  // Where the racer on a clearing row is: its nose, and the point behind which the row is wiped
+  function racerPos(t, dir) {
+    const L = CELL * 2.4, W = board.width;
+    const p = Math.min(1, t / CLEAR_MS);
+    const ease = p * p * (3 - 2 * p) * 0.35 + p * 0.65;
+    const d = -L * 0.2 + ease * (W + L * 1.4);
+    return dir > 0 ? { nose: d, wipe: d - L * 0.5, L } : { nose: W - d, wipe: W - d + L * 0.5, L };
+  }
   // Dark glass cell edged with glowing light
   function cell(c, x, y, color, size, alpha = 1) {
     const lw = Math.max(1.5, size * 0.08), inset = Math.max(3, size * 0.22);
@@ -442,21 +511,22 @@
     for (let x = 1; x < COLS; x++) { ctx.beginPath(); ctx.moveTo(x * CELL + .5, 0); ctx.lineTo(x * CELL + .5, board.height); ctx.stroke(); }
     for (let y = 1; y < ROWS; y++) { ctx.beginPath(); ctx.moveTo(0, y * CELL + .5); ctx.lineTo(board.width, y * CELL + .5); ctx.stroke(); }
 
-    // during a clear, a white light streak sweeps each full row and wipes it
-    const sweepX = clearing ? Math.min(1, clearing.t / CLEAR_MS) * board.width : 0;
+    // during a clear, a light-racer drives each full row; its trail wipes the blocks.
+    // Rows alternate direction and color, so multi-line clears criss-cross.
+    const racers = clearing ? clearing.rows.map((y, i) => ({ y, dir: i % 2 ? -1 : 1, col: RACER_COLORS[i % 2] })) : [];
+    for (const r of racers) Object.assign(r, racerPos(clearing.t, r.dir));
     for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
       if (!grid[y][x]) continue;
-      if (clearing && clearing.rows.includes(y)) {
-        if ((x + 1) * CELL > sweepX) cell(ctx, x * CELL, y * CELL, '#e9fdff', CELL);
+      const r = racers.find(r => r.y === y);
+      if (r) {
+        const mid = x * CELL + CELL / 2;
+        if (r.dir > 0 ? mid > r.wipe : mid < r.wipe) cell(ctx, x * CELL, y * CELL, '#e9fdff', CELL);
       } else cell(ctx, x * CELL, y * CELL, grid[y][x], CELL);
     }
-    if (clearing) for (const y of clearing.rows) {
-      const g = ctx.createLinearGradient(sweepX - CELL * 4, 0, sweepX, 0);
-      g.addColorStop(0, 'rgba(24,231,255,0)'); g.addColorStop(1, 'rgba(233,253,255,.9)');
-      ctx.fillStyle = g; ctx.shadowColor = '#18e7ff'; ctx.shadowBlur = CELL;
-      ctx.fillRect(Math.max(0, sweepX - CELL * 4), y * CELL + CELL * .3, Math.min(sweepX, CELL * 4), CELL * .4);
-      ctx.fillStyle = '#ffffff'; ctx.fillRect(sweepX - 3, y * CELL + 2, 3, CELL - 4);
-      ctx.shadowBlur = 0;
+    for (const r of racers) {
+      const cy = r.y * CELL + CELL / 2, tail = r.nose - r.dir * r.L;
+      drawTrail(ctx, r.dir > 0 ? Math.min(0, tail - board.width) : Math.max(board.width, tail + board.width), tail, cy + CELL * 0.08, CELL * 0.22, r.col);
+      drawRacer(ctx, r.nose, cy, r.L, CELL * 0.78, r.dir, r.col);
     }
     if (cur) {
       let gy = 0; while (!collides(cur, cur.m, 0, gy + 1)) gy++;
@@ -484,6 +554,39 @@
   }
   function drawSide() { drawMini(nctx, nextCv, nextQ && nextQ[0]); drawMini(hctx, holdCv, held); }
 
+  // ---------- Ambient racers cruising the background grid floor ----------
+  const bg = $('bgRacers'), bctx = bg.getContext('2d');
+  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let bgRacers = [], bgWait = 1500;
+  function sizeBg() { bg.width = innerWidth; bg.height = innerHeight; }
+  function updateBg(dt) {
+    if (calm) return;
+    bgWait -= dt;
+    if (bgWait <= 0 && bgRacers.length < 2) {
+      const depth = 0.25 + Math.random() * 0.75;             // 0 = far horizon, 1 = near
+      const dir = Math.random() < .5 ? 1 : -1;
+      const H = 10 + depth * 30, L = H * 3.1;
+      bgRacers.push({
+        dir, H, L, col: RACER_COLORS[Math.random() * 2 | 0],
+        y: bg.height * (0.6 + depth * 0.34),
+        x: dir > 0 ? -L : bg.width + L,
+        start: dir > 0 ? -L : bg.width + L,
+        v: (0.35 + depth * 0.6) * (bg.width / 1400) * dir,  // px per ms
+        fade: 1,
+      });
+      bgWait = 3500 + Math.random() * 5000;
+    }
+    bctx.clearRect(0, 0, bg.width, bg.height);
+    for (const r of bgRacers) {
+      const out = r.dir > 0 ? r.x - r.L > bg.width : r.x + r.L < 0;
+      if (out) r.fade -= dt / 900; else r.x += r.v * dt;
+      const tail = r.x - r.dir * r.L;
+      drawTrail(bctx, r.start, tail, r.y + r.H * 0.08, r.H * 0.2, r.col, Math.max(0, r.fade) * 0.8);
+      if (!out) drawRacer(bctx, r.x, r.y, r.L, r.H, r.dir, r.col);
+    }
+    bgRacers = bgRacers.filter(r => r.fade > 0);
+  }
+
   // ---------- Loop ----------
   function loop(now) {
     const dt = now - (last || now); last = now;
@@ -496,6 +599,7 @@
       if (keysDown.left || keysDown.right || keysDown.down) handleRepeat(dt);
     }
     draw();
+    updateBg(dt);
     requestAnimationFrame(loop);
   }
 
@@ -570,6 +674,7 @@
       case 'slam': tone(180, .15, 'sawtooth', .5, 0, .3); break;
       case 'clear': [523, 659, 784].forEach((f, i) => tone(f, .1, 'square', .5, i * .06)); break;
       case 'quad': [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, .14, 'square', .6, i * .07)); break;
+      case 'race': tone(90, .5, 'sawtooth', .5, 0, 6); tone(180, .45, 'square', .2, .03, 4); break;
       case 'level': [392, 523, 659, 784, 1047].forEach((f, i) => tone(f, .12, 'triangle', .7, i * .08)); break;
       case 'over': [392, 330, 262, 196, 131].forEach((f, i) => tone(f, .25, 'square', .6, i * .18)); break;
     }
@@ -596,7 +701,8 @@
     };
   })();
 
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize', () => { resize(); sizeBg(); });
+  sizeBg();
   state = 'title';
   if (matchMedia('(pointer: coarse), (max-width: 600px)').matches) $('ovPrompt').textContent = 'TAP TO PLAY';
   renderScores();

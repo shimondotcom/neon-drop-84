@@ -1,6 +1,6 @@
 # NEON DROP
 
-A retro 80s arcade falling-block puzzle game set in a glowing light-grid world: light-line blocks, a horizon grid floor, light-streak line clears and square-wave chiptune sound. One self-contained `index.html` with no build step, hosted on GitHub Pages.
+A retro 80s arcade falling-block puzzle game set in a glowing light-grid world: light-line blocks and a horizon grid floor. Every cleared line is wiped by a light-racer streaking across the row (multi-line clears criss-cross), and racers cruise the background grid. One self-contained `index.html` with no build step, hosted on GitHub Pages.
 
 After a game, a top-10 score asks for your name (up to 8 characters). The scoreboard is saved in your browser.
 
